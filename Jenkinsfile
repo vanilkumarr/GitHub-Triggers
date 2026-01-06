@@ -1,15 +1,10 @@
 pipeline {
     agent any
 
-    options{
+    options {
         timestamps()
-        disableCoucurrentBuilds()
+        disableConcurrentBuilds()
         timeout(time: 30, unit: 'MINUTES')
-
-    }
-
-    tools {
-        nodejs 'node18'
     }
 
     environment {
@@ -17,11 +12,6 @@ pipeline {
     }
 
     parameters {
-        string(
-            name: 'BRANCH',
-            defaultValue: 'main',
-            description: 'Branch to deploy'
-        )
         choice(
             name: 'ENV',
             choices: ['dev', 'stage', 'prod'],
@@ -35,12 +25,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: params.BRANCH,
-                    url: 'https://github.com/org/repo.git'
-            }
-        }
 
         stage('Build') {
             steps {
@@ -65,16 +49,23 @@ pipeline {
 
         stage('Deploy') {
             when {
-                expression { params.DEPLOY == true }
-                expression{ param.ENV != 'prod' ||currentBuild.rawBuild.getCause(hudson.model.Cause$UserIdCause) != null }
+                allOf {
+                    expression { params.DEPLOY == true }
+                    expression {
+                        params.ENV != 'prod' ||
+                        currentBuild.rawBuild.getCause(
+                          hudson.model.Cause$UserIdCause
+                        ) != null
+                    }
                 }
             }
             options {
-                timeout(time: 10, unit: 'MINUTES') // deploy must not hang
+                timeout(time: 10, unit: 'MINUTES')
             }
             steps {
-                retry(2) {   // retry only deploy infra calls
+                retry(2) {
                     echo "Deploying ${APP_NAME} to ${params.ENV}"
+                }
             }
         }
     }
@@ -86,11 +77,8 @@ pipeline {
         failure {
             echo 'Pipeline failed'
         }
-
-        always{
-            mail: "echo pipeline executed"
+        always {
             cleanWs()
-
         }
     }
 }
