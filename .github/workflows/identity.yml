@@ -8,9 +8,18 @@ jobs:
     steps:
       - name: creating
         run: echo Helloworld >new.txt
+      - name: upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: myfile
+          path: new.txt
   Read:
     needs: Create
     runs-on: ubuntu-latest
     steps:
+      - name: download artifacts
+        uses: actions/download-aritifacts@v4
+        with:
+          name: myfile
       - name: reading
         run: cat new.txt
