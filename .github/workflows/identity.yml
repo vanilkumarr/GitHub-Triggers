@@ -9,6 +9,7 @@ jobs:
       - name: creating
         run: echo Helloworld >new.txt
   Read:
+    needs: Create
     runs-on: ubuntu-latest
     steps:
       - name: reading
