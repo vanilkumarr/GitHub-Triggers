@@ -1,18 +1,49 @@
-name: docker-ci
+name: prodCI
 
 on:
-  push:
   workflow_dispatch:
+    inputs:
+      env:
+        description: "Target environment"
+        required: true
+        default: dev
+      deploy:
+        description: "Deploy application?"
+        required: true
+        default: 'false'
+
+# 🌍 Workflow-level env (shared across all jobs)
+env:
+  APP_NAME: demo-app
 
 jobs:
-  docker:
+
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Build
+        run: echo "Building $APP_NAME for ${{ inputs.env }}"
 
-      - name: Build Docker image
-        run: docker build -t demo:latest .
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        test: [unit, e2e]
+    steps:
+      - name: Run tests
+        run: echo "Running ${{ matrix.test }} tests for $APP_NAME"
 
-      - name: Run Docker image
-        run: docker run demo:latest
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+
+    # 🚨 Production gate
+    if: ${{ inputs.deploy == 'true' }}
+
+    environment:
+      name: ${{ inputs.env }}
+
+    steps:
+      - name: Deploy
+        run: echo "Deploying $APP_NAME to ${{ inputs.env }}"
