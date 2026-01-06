@@ -1,0 +1,16 @@
+name: identity
+
+on: push
+
+jobs:
+  identity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show user
+        run: whoami
+
+      - name: Show OS
+        run: uname -a
+
+      - name: Show working directory
+        run: pwd
