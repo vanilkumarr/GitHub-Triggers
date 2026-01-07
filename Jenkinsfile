@@ -51,14 +51,10 @@ pipeline {
             when {
                 allOf {
                     expression { params.DEPLOY == true }
-                    expression {
-                        params.ENV != 'prod' ||
-                        currentBuild.rawBuild.getCause(
-                          hudson.model.Cause$UserIdCause
-                        ) != null
+                    
                     }
                 }
-            }
+            
             options {
                 timeout(time: 10, unit: 'MINUTES')
             }
